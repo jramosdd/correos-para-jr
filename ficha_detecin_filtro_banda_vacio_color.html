@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DETECIN - Filtro Banda de Vacío</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root{
+      --azul:#005c8a;
+      --azul2:#0077aa;
+      --naranja:#f28c28;
+      --amarillo:#f5b400;
+      --texto:#1d2630;
+      --gris:#475467;
+      --claro:#f6f8fa;
+      --borde:#e6e9ef;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:#e9eef3;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--texto);
+    }
+
+    .toolbar{
+      position:sticky;
+      top:0;
+      z-index:9999;
+      background:#111827;
+      color:white;
+      padding:10px 16px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      box-shadow:0 2px 12px #0004;
+    }
+
+    .toolbar button,
+    .toolbar label{
+      background:var(--naranja);
+      color:white;
+      border:0;
+      border-radius:8px;
+      padding:9px 11px;
+      font-weight:700;
+      cursor:pointer;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .toolbar label input{display:none}
+    .hint{font-size:12px;opacity:.85}
+
+    .book{
+      padding:24px;
+      display:grid;
+      gap:24px;
+      justify-content:center;
+    }
+
+    .page{
+      width:794px;
+      height:1123px;
+      background:white;
+      position:relative;
+      overflow:hidden;
+      box-shadow:0 12px 30px #0002;
+      page-break-after:always;
+    }
+
+    [contenteditable]{
+      outline:2px dashed transparent;
+      border-radius:4px;
+    }
+
+    [contenteditable]:hover{
+      outline-color:#f28c2888;
+    }
+
+    .header{
+      height:82px;
+      display:flex;
+      align-items:center;
+      padding:18px 36px 10px;
+      gap:14px;
+      background:white;
+    }
+
+    .logoBox{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:260px;
+    }
+
+    .logoImg{
+      height:46px;
+      width:auto;
+      max-width:82px;
+      object-fit:contain;
+      display:none;
+    }
+
+    .logoText{
+      color:var(--azul);
+      font-weight:900;
+      font-size:28px;
+      letter-spacing:.8px;
+      line-height:1;
+    }
+
+    .docType{
+      margin-left:auto;
+      color:#667085;
+      font-size:13px;
+      font-weight:700;
+      text-align:right;
+    }
+
+    .topLine{
+      position:absolute;
+      left:0;
+      right:0;
+      top:82px;
+      height:6px;
+      background:linear-gradient(90deg,var(--azul) 0 62%,var(--naranja) 62% 100%);
+      z-index:10;
+    }
+
+    .footer{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      height:50px;
+      background:linear-gradient(90deg,var(--azul),#06456b);
+      color:white;
+      font-size:11px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 36px;
+    }
+
+    .footer:before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:-5px;
+      width:64%;
+      height:5px;
+      background:var(--naranja);
+    }
+
+    .section{padding:24px 36px}
+    .sectionTight{padding:1px 36px}
+    .sectionCompact .title{
+      margin-top:-40px;
+    }
+
+    .title{
+      font-size:34px;
+      line-height:1;
+      color:var(--azul);
+      font-weight:300;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+      margin:0 0 10px;
+      margin-top:0px;
+    }
+
+    .title strong{
+      color:var(--naranja);
+      font-weight:400;
+    }
+
+    .lead{
+      font-size:16.5px;
+      color:var(--naranja);
+      font-weight:800;
+      line-height:1.35;
+      margin:0 0 16px;
+    }
+
+    .editableImage{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+    }
+
+    .hero{
+      height:505px;
+      background:linear-gradient(125deg,#005c8a,#0077aa 55%,#0a3650);
+      color:white;
+      position:relative;
+      padding:30px 18px;
+      overflow:hidden;
+    }
+
+    .hero:after{
+      content:"";
+      position:absolute;
+      right:-120px;
+      top:-120px;
+      width:420px;
+      height:420px;
+      border-radius:50%;
+      background:#ffffff12;
+    }
+
+    .kicker{
+      color:var(--amarillo);
+      font-weight:800;
+      font-size:30px;
+      text-transform:uppercase;
+      position:relative;
+      z-index:2;
+    }
+
+    h1{
+      font-size:62px;
+      line-height:1.02;
+      margin:30px 0 4px;
+      font-weight:900;
+      letter-spacing:-1px;
+      max-width:370px;
+      position:relative;
+      z-index:2;
+      text-transform:uppercase;
+    }
+
+    .subtitle{
+      font-size:20px;
+      line-height:1.25;
+      font-weight:900;
+      max-width:430px;
+      color:#fff;
+      position:relative;
+      z-index:2;
+      margin-top:10px;
+    }
+
+    .subtitle span{
+      color:var(--amarillo);
+      font-size:30px;
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .heroImg{
+      position:absolute;
+      right:18px;
+      bottom:98px;
+      width:455px;
+      height:325px;
+      background:white;
+      border-radius:20px;
+      padding:8px;
+      box-shadow:0 20px 45px #0004;
+      z-index:2;
+    }
+
+    .brandBlock{
+      position:absolute;
+      right:18px;
+      bottom:40px;
+      width:455px;
+      height:40px;
+      background:white;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:7px 12px;
+      z-index:2;
+      box-shadow:0 10px 25px #0002;
+    }
+
+    .brandLine{
+      height:8px;
+      width:220px;
+      background:linear-gradient(90deg,var(--azul) 0 62%,var(--naranja) 62% 100%);
+      border-radius:50px;
+    }
+
+    .brandLogo{
+      height:28px;
+      max-width:180px;
+      object-fit:contain;
+    }
+
+    .applicationWrap{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:20px;
+      align-items:center;
+      padding:42px 36px;
+    }
+
+    .appImgBox{
+      height:350px;
+      border:8px solid var(--azul);
+      border-radius:2px;
+      background:white;
+      padding:6px;
+      overflow:hidden;
+    }
+
+    .appList{
+      font-size:18px;
+      line-height:1.45;
+      color:var(--azul);
+      font-weight:700;
+    }
+
+    .appList b{
+      display:block;
+      margin-bottom:10px;
+      color:var(--amarillo);
+      font-size:40px;
+      font-weight:1200;
+    }
+
+    /* BLOQUES TIPO EL FORMATO ANTERIOR */
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      padding:14px 36px 12px;
+    }
+
+    .card{
+      border-radius:16px;
+      background:linear-gradient(180deg,#f8fafc,#f2f4f7);
+      padding:13px 14px;
+      border:1px solid #dfe4ea;
+      min-height:125px;
+      box-shadow:0 8px 18px #00000008;
+    }
+
+    .card b{
+      color:var(--azul);
+      display:block;
+      font-size:25px;
+      line-height:1.02;
+      margin-bottom:1px;
+      text-transform:uppercase;
+      letter-spacing:-.3px;
+    }
+
+    .card p{
+      margin:0;
+      font-size:14px;
+      line-height:1.35;
+      color:#344054;
+    }
+
+    .featureGrid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+      margin-top:16px;
+    }
+
+    .feature{
+      border-left:5px solid var(--naranja);
+      background:linear-gradient(180deg,#f8fafc,#f3f6f9);
+      padding:14px 16px;
+      border-radius:12px;
+      min-height:104px;
+      box-shadow:0 8px 18px #00000008;
+    }
+
+    .feature h3{
+      margin:0 0 7px;
+      color:var(--azul);
+      font-size:16px;
+      font-weight:800;
+    }
+
+    .feature p{
+      margin:0;
+      color:#344054;
+      font-size:13.8px;
+      line-height:1.35;
+    }
+
+    .wideImage{
+      height:265px;
+      margin:0px 36px 4px;
+      overflow:hidden;
+      background:white;
+    }
+
+    .two{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:22px;
+      align-items:start;
+    }
+
+    .processRow{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:8px;
+      padding:0 36px;
+      align-items:center;
+      margin-bottom:-30px;
+    }
+
+    .processTextBox{
+      background:transparent;
+      border-left:4px solid var(--naranja);
+      padding:1px 12px;
+    }
+
+    .processTextBox b{color:var(--amarillo)}
+
+    .sideSmallImage{
+      height:155px;
+      border:1px solid #e6e9ef;
+      background:white;
+      padding:3px;
+    }
+
+    .advantageBlock{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:20px;
+      padding:1px 36px 0;
+      margin-top:0px; 
+      align-items:start;
+    }
+
+    .advText{
+      font-size:14px;
+      line-height:1.15;
+      color:#111827;
+    }
+
+    .advText h3{
+      font-size:18px;
+      margin:0 0 0px;
+      font-weight:800;
+    }
+
+    .advImage{
+      height:140px;
+      background:white;
+      padding:5px;
+      overflow:hidden;
+    }
+
+    .yellowNote{
+      color:var(--amarillo);
+      font-weight:800;
+      font-size:16px;
+      line-height:1.35;
+      margin:1px 36px 0;
+    }
+
+    .titleSmall{
+      font-size:20px;
+      font-weight:800;
+      margin-bottom:6px;
+      letter-spacing:0.3px;
+    }
+
+    .titleSmall .num{
+      color:var(--azul);
+      margin-right:4px;
+    }
+
+    .titleSmall .main{
+      color:var(--azul);
+    }
+
+    .titleSmall .highlight{
+      color:var(--naranja);
+    }
+
+    .titleRubber{
+      margin-top:25px;
+    }
+
+    .titleSupport{
+      margin-top:-25px;
+    }
+
+    .beltTop{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:20px;
+      align-items:start;
+      padding:0 36px;
+      margin-top:55px;
+    }
+
+    .beltPhoto{
+      height:210px;
+      border-radius:18px;
+      overflow:hidden;
+      background:white;
+      border:1px solid #e6e9ef;
+      padding:1px;
+    }
+
+    .beltCompareImage{
+      height:250px;
+      margin:10px 36px 0;
+      background:white;
+      padding:4px;
+      overflow:hidden;
+      margin-top:15px;
+    }
+
+    .titleSupport{
+      display:block;
+      margin-top:-30px;
+    }
+
+    .supportText{
+      position: relative;
+      top: -60px;
+    }
+
+    .supportRow{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      padding:20px 36px 0;
+      margin-top:-70px;
+      align-items:end;
+    }
+
+    .supportMainImg{
+      height:250px;
+      background:white;
+      padding:4px;
+      overflow:hidden;
+    }
+
+    .supportSideImg{
+      height:170px;
+      background:white;
+      padding:4px;
+      overflow:hidden;
+      margin-top:65px;
+    }
+
+    .vacuumFullTop{
+      height:260px;
+      margin:-230px 36px 0;
+      background:white;
+      overflow:hidden;
+      margin-top:-220px;
+    }
+
+    .vacuumText{
+      padding:12px 36px 0;
+      font-size:15px;
+      line-height:1.35;
+      color:#111827;
+      margin-top:10px;
+    }
+
+    .vacuumText .orange{
+      color:var(--naranja);
+      font-weight:800;
+    }
+
+    .vacuumRow{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      padding:12px 36px 0;
+      align-items:start;
+    }
+
+    .vacuumSideImg{
+      height:200px;
+      background:white;
+      padding:4px;
+      overflow:hidden;
+      margin-top:20px;
+    }
+
+    .vacuumMiddle{
+      height:180px;
+      margin:10px 36px 0;
+      background:white;
+      overflow:hidden;
+    }
+
+    .posMantenimiento{
+      display:block;
+      margin-top:45px;
+    }
+
+    .vacuumFullBottom{
+      height:250px;
+      margin:10px 36px 0;
+      background:white;
+      overflow:hidden;
+      margin-top:10px;
+    }
+
+    .finalSection{
+      padding:22px 36px 0;
+      margin-top:20px;
+    }
+
+    .finalItem{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      align-items:center;
+      margin-bottom:24px;
+      min-height:165px;
+    }
+
+    .finalText{
+      font-size:17px;
+      line-height:1.38;
+      color:#111827;
+      margin-top:-20px;
+    }
+
+    .finalText h3{
+      font-size:18px;
+      line-height:1.2;
+      margin:0 0 8px;
+      font-weight:800;
+      text-transform:uppercase;
+    }
+
+    .finalImg{
+      height:165px;
+      background:white;
+      padding:4px;
+      overflow:hidden;
+      margin-top:20px;
+    }
+
+    .finalRight .finalImg{ grid-column:2; }
+    .finalRight .finalText{ grid-column:1; grid-row:1; }
+    .finalLeft .finalImg{ grid-column:1; }
+    .finalLeft .finalText{ grid-column:2; grid-row:1; }
+
+    .smallFinalGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+      padding:0 36px;
+      margin-top:4px;
+    }
+
+    .smallFinalCard h3{
+      font-size:17px;
+      margin:0 0 8px;
+      line-height:1.2;
+      text-transform:uppercase;
+      margin-top:40px;
+    }
+
+    .smallFinalCard .finalImg{
+      height:130px;
+      margin-top:20px;
+    }
+
+    @media print{
+      body{background:white}
+      .toolbar{display:none}
+      .book{padding:0;gap:0}
+      .page{box-shadow:none;margin:0;width:210mm;height:297mm}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="toolbar">
+    <button onclick="exportPDF()">Exportar PDF HD</button>
+    <label>Logo DETECIN<input type="file" accept="image/*" onchange="loadImage(event,'logoImg',true)"></label>
+    <label>Portada equipo<input type="file" accept="image/*" onchange="loadImage(event,'heroImage')"></label>
+    <label>Logo HASLER<input type="file" accept="image/*" onchange="loadImage(event,'haslerLogo')"></label>
+    <label>Aplicaciones<input type="file" accept="image/*" onchange="loadImage(event,'applicationImage')"></label>
+    <label>Cómo funciona grande<input type="file" accept="image/*" onchange="loadImage(event,'howWorksMain')"></label>
+    <label>Cómo funciona diagrama<input type="file" accept="image/*" onchange="loadImage(event,'howWorksDiagram')"></label>
+    <label>Frame<input type="file" accept="image/*" onchange="loadImage(event,'frameImage')"></label>
+    <label>Belt foto<input type="file" accept="image/*" onchange="loadImage(event,'beltPhoto')"></label>
+    <label>Belt formas<input type="file" accept="image/*" onchange="loadImage(event,'beltCompare')"></label>
+    <label>Support table<input type="file" accept="image/*" onchange="loadImage(event,'supportTable')"></label>
+    <label>Air vs Philippe<input type="file" accept="image/*" onchange="loadImage(event,'supportCompare')"></label>
+    <label>Vacuum equipo<input type="file" accept="image/*" onchange="loadImage(event,'vacuumMain')"></label>
+    <label>Vacuum foto<input type="file" accept="image/*" onchange="loadImage(event,'vacuumPhoto')"></label>
+    <label>Vacuum plano<input type="file" accept="image/*" onchange="loadImage(event,'vacuumPlan')"></label>
+    <label>Vacuum mant.<input type="file" accept="image/*" onchange="loadImage(event,'vacuumMaint')"></label>
+    <label>Final 1 derecha<input type="file" accept="image/*" onchange="loadImage(event,'finalImg1')"></label>
+    <label>Final 2 izquierda<input type="file" accept="image/*" onchange="loadImage(event,'finalImg2')"></label>
+    <label>Final 3 derecha<input type="file" accept="image/*" onchange="loadImage(event,'finalImg3')"></label>
+    <label>Final 4<input type="file" accept="image/*" onchange="loadImage(event,'finalImg4')"></label>
+    <label>Final 5<input type="file" accept="image/*" onchange="loadImage(event,'finalImg5')"></label>
+    <span class="hint">El logo se sube una sola vez. Los textos se editan haciendo clic.</span>
+  </div>
+
+  <div class="book" id="book">
+
+    <section class="page">
+      <div class="header">
+        <div class="logoBox">
+          <img id="logoImg" class="logoImg" alt="Logo DETECIN">
+          <div class="logoText">DETECIN</div>
+        </div>
+        <div class="docType" contenteditable="true">Presentación comercial</div>
+      </div>
+      <div class="topLine"></div>
+
+      <div class="hero">
+        <div class="kicker" contenteditable="true">FILTRES PHILIPPE® / HASLER GROUP</div>
+        <h1 contenteditable="true">FILTRO BANDA DE VACÍO</h1>
+        <div class="subtitle" contenteditable="true">
+          <span>Soluciones para filtración continua</span>
+          Con más de 500 sistemas de filtrado instalados
+        </div>
+        <div class="heroImg"><img id="heroImage" class="editableImage" alt="Imagen principal"></div>
+        <div class="brandBlock"><div class="brandLine"></div><img id="haslerLogo" class="brandLogo" alt="Logo HASLER"></div>
+      </div>
+
+      <div class="applicationWrap">
+        <div class="appImgBox"><img id="applicationImage" class="editableImage" alt="Aplicaciones"></div>
+        <div class="appList" contenteditable="true">
+          <b>APLICACIONES:</b>
+          - Relleno de pasta (backfill) – Relaves<br>
+          - Pre-acondicionamiento (Pre–Prensa)<br>
+          - Recuperación de metal valioso / ácidos (SX/EW – lavado de torta)<br>
+          - Lavado de torta (quitar sales / arcillas)<br>
+          - Filtrar lodos de caliza<br>
+          - Filtrado intermedio (estabilización de circuito)<br>
+          - Lavado de concentrados<br>
+          - Tratamiento de aguas
+        </div>
+      </div>
+
+      <div class="footer"><span contenteditable="true">DETECIN · Desarrollo y Tecnología Industrial</span><span contenteditable="true">www.detecin.com · ventas@detecin.com</span></div>
+    </section>
+
+    <section class="page">
+      <div class="header">
+        <div class="logoBox"><img id="logoImg2" class="logoImg" alt="Logo DETECIN"><div class="logoText">DETECIN</div></div>
+        <div class="docType" contenteditable="true">Filtro banda de vacío</div>
+      </div>
+      <div class="topLine"></div>
+
+      <div class="cards">
+        <div class="card"><b contenteditable="true">Filtración continua</b><p contenteditable="true">Equipo diseñado para separación sólido-líquido, lavado y descarga de torta en operación continua.</p></div>
+        <div class="card"><b contenteditable="true">Alta disponibilidad</b><p contenteditable="true">Diseño robusto para operación industrial, mantenimiento rápido y larga vida útil.</p></div>
+        <div class="card"><b contenteditable="true">Aplicación minera</b><p contenteditable="true">Ideal para pulpas, concentrados, relaves, hidrometalurgia y procesos químicos.</p></div>
+      </div>
+
+      <div class="sectionTight">
+        <h2 class="title" contenteditable="true">Cómo <strong>funciona</strong></h2>
+        <p class="lead" contenteditable="true">El equipo recibe pulpa, aplica vacío para separar líquido y sólido, permite lavado de torta y descarga continua.</p>
+      </div>
+
+      <div class="wideImage"><img id="howWorksMain" class="editableImage" alt="Cómo funciona"></div>
+
+      <div class="processRow">
+        <div class="processTextBox" contenteditable="true">
+          - Ingreso de pulpa sobre la banda filtrante.<br>
+          - Separación por vacío a través de la tela y banda ranurada.<br>
+          <b>- Lavado de torta para mejorar recuperación o limpieza.</b><br>
+          <b>- Descarga continua del sólido filtrado.</b>
+        </div>
+        <div class="sideSmallImage"><img id="howWorksDiagram" class="editableImage" alt="Diagrama funcionamiento"></div>
+      </div>
+
+      <div class="topLine"></div>
+
+      <div class="sectionTight" style="padding-top:42px;">
+        <h2 class="title" contenteditable="true">Ventajas <strong>principales</strong></h2>
+      </div>
+
+      <div class="advantageBlock">
+        <div class="advText" contenteditable="true">
+          <h3 class="titleSmall">
+            <span class="num">1.</span> 
+            <span class="main">FRAME</span> / 
+            <span class="highlight">ESTRUCTURA</span>
+          </h3>
+          <b>CONCEPTO:</b><br>
+          • 100 % atornillado<br><br>
+          <b>MATERIAL DE CONSTRUCCIÓN:</b><br>
+          • Acero al carbono con resina epóxica<br>
+          • Acero inoxidable 304 L<br>
+          • Acero inoxidable 316 L
+        </div>
+        <div class="advImage"><img id="frameImage" class="editableImage" alt="Frame"></div>
+      </div>
+      <div class="yellowNote" contenteditable="true">
+        • La instalación y el reemplazo de la correa se pueden realizar desde arriba en áreas confinadas.<br>
+        • Fácil mantenimiento y reemplazo de los elementos estructurales si fuera necesario.
+      </div>
+
+      <div class="footer"><span contenteditable="true">DETECIN · Soluciones industriales</span><span contenteditable="true">Página 2/5</span></div>
+    </section>
+
+    <section class="page">
+      <div class="header">
+        <div class="logoBox"><img id="logoImg3" class="logoImg" alt="Logo DETECIN"><div class="logoText">DETECIN</div></div>
+        <div class="docType" contenteditable="true">Ventajas principales</div>
+      </div>
+      <div class="topLine"></div>
+
+      <div class="beltTop">
+        <div class="advText" contenteditable="true">
+          <h3 class="titleSmall titleRubber">
+            <span class="num">2.</span> 
+            <span class="main">RUBBER BELT</span> / 
+            <span class="highlight">BANDA DE GOMA</span>
+          </h3>
+          • La unión se realiza en el taller del fabricante de caucho mediante vulcanización en caliente.<br>
+          • La correa se mecaniza posteriormente para: ajuste del ancho nominal, ranurado, perforación, pruebas y equilibrado.
+        </div>
+        <div class="beltPhoto"><img id="beltPhoto" class="editableImage" alt="Rubber belt"></div>
+      </div>
+
+      <div class="beltCompareImage"><img id="beltCompare" class="editableImage" alt="Belt compare"></div>
+
+      <div class="supportRow">
+        <div class="advText supportText" contenteditable="true">
+          <h3 class="titleSmall titleSupport">
+            <span class="num">3.</span> 
+            <span class="main">SUPPORT TABLE SYSTEM</span> / 
+            <span class="highlight">SISTEMA DE SOPORTE DE BANDA</span>
+          </h3>
+          - Banda soportada por conjuntos de correas de desgaste sin fin y guías deslizantes.<br>
+          - Este sistema permite que la cinta sea 100% horizontal.
+        </div>
+        <div class="supportSideImg"><img id="supportCompare" class="editableImage" alt="Air vs Philippe"></div>
+      </div>
+      <div class="supportMainImg" style="margin:12px 36px 0;"><img id="supportTable" class="editableImage" alt="Support table"></div>      
+
+      <div class="footer"><span contenteditable="true">DETECIN · Desarrollo y Tecnología Industrial</span><span contenteditable="true">Página 3/5</span></div>
+    </section>
+
+    <section class="page">
+      <div class="header">
+        <div class="logoBox"><img id="logoImg4" class="logoImg" alt="Logo DETECIN"><div class="logoText">DETECIN</div></div>
+        <div class="docType" contenteditable="true">Soporte y caja de vacío</div>
+      </div>
+      <div class="topLine"></div>
+
+      <div class="vacuumFullTop" style="margin-top:24px;">
+        <div class="advText" contenteditable="true">
+          <h3 class="titleSmall">
+            <span class="num">4.</span> 
+            <span class="main">VACUUM BOX</span> / 
+            <span class="highlight">CAJA DE VACÍO</span>
+          </h3>
+        </div>
+      </div>  
+      
+      <div class="vacuumFullTop">
+        <img id="vacuumMain" class="editableImage" alt="Vacuum box principal">
+      </div>
+
+      <div class="vacuumRow">
+
+        <div class="vacuumText" contenteditable="true">
+          Fabricamos con tolerancias estrictas para que la interfaz entre la caja de vacío y la banda permanezca alineada y en contacto durante un largo periodo de tiempo.<br><br>
+
+          <b>Materiales de construcción</b><br>
+          <span class="orange">FRP (si hay cloruros),<br>304L, 316L, Duplex</span><br><br>
+
+          Para el mantenimiento, la caja de vacío de Filtres Philippe® se inclina mediante un sencillo sistema neumático.<br><br>
+
+          <span class="orange posMantenimiento">* Posición de mantenimiento</span>
+        </div>
+
+        <div class="vacuumSideImg">
+          <img id="vacuumPlan" class="editableImage">
+        </div>
+
+      </div>
+
+      <div class="vacuumFullBottom">
+        <img id="vacuumMaint" class="editableImage" alt="Posición de mantenimiento">
+      </div>
+
+      <div class="footer"><span contenteditable="true">DETECIN · Soluciones industriales</span><span contenteditable="true">Página 4/5</span></div>
+    </section>
+
+    <section class="page">
+      <div class="header">
+        <div class="logoBox"><img id="logoImg5" class="logoImg" alt="Logo DETECIN"><div class="logoText">DETECIN</div></div>
+        <div class="docType" contenteditable="true">Componentes principales</div>
+      </div>
+      <div class="topLine"></div>
+
+      <div class="finalSection">
+        <div class="finalItem finalRight">
+          <div class="finalText" contenteditable="true">
+            <h3 class="titleSmall">
+              <span class="num">5.</span> 
+              <span class="main">CLOTH AND BELT WASHING ZONE</span> / 
+              <span class="highlight">ZONA D E LAVADO DE BANDA Y TELA</span>
+            </h3>
+            - Un colector con 5 salidas para un lavado eficiente de telas y banda.<br>
+            - Lavado interior y exterior.
+          </div>
+          <div class="finalImg"><img id="finalImg1" class="editableImage" alt="Final 1"></div>
+        </div>
+
+        <div class="finalItem finalLeft">
+          <div class="finalImg"><img id="finalImg2" class="editableImage" alt="Final 2"></div>
+          <div class="finalText" contenteditable="true">
+            <h3 class="titleSmall">
+              <span class="num">6.</span> 
+              <span class="main">PULLEYS</span> / 
+              <span class="highlight">POLEAS</span>
+            </h3>
+            - Un único eje pasante de acero, de gran resistencia a la tensión mecánica.<br>
+            - Superficie externa, bridas laterales y eje recubiertos con caucho vulcanizado en caliente.
+          </div>
+        </div>
+
+        <div class="finalItem finalRight">
+          <div class="finalText" contenteditable="true">
+            <h3 class="titleSmall">
+              <span class="num">7.</span> 
+              <span class="main">CLOTH TENSION SYSTEM</span> / 
+              <span class="highlight">SISTEMA DE TENSIÓN DE TELA</span>
+            </h3>
+            - Totalmente automático.<br>
+            - Accionamiento neumático.<br>
+            - No requiere contrapeso.<br>
+            - Ajuste fácil y preciso.
+          </div>
+          <div class="finalImg"><img id="finalImg3" class="editableImage" alt="Final 3"></div>
+        </div>
+      </div>
+
+      <div class="smallFinalGrid">
+        <div class="smallFinalCard card8">
+          <div class="finalText" contenteditable="true"><h3 class="titleSmall">
+              <span class="num">8.</span> 
+              <span class="main">CLOTH GUIDING SYSTEM</span> / 
+              <span class="highlight">SISTEMA DE GUÍA PARA TELA</span>
+            </h3></div>
+          <div class="finalImg"><img id="finalImg4" class="editableImage" alt="Final 4"></div>
+        </div>
+        <div class="smallFinalCard card9">
+          <div class="finalText" contenteditable="true"><h3 class="titleSmall">
+              <span class="num">9.</span> 
+              <span class="main">CONSTANT CAKE THICKNESS</span> / 
+              <span class="highlight">ALIMENTADORES DE LODOS</span>
+            </h3>- Distribución perfecta.</div>
+          <div class="finalImg"><img id="finalImg5" class="editableImage" alt="Final 5"></div>
+        </div>
+      </div>
+
+      <div class="footer"><span contenteditable="true">DETECIN · Desarrollo y Tecnología Industrial</span><span contenteditable="true">Página 5/5</span></div>
+    </section>
+
+  </div>
+
+  <script>
+    function loadImage(event, imageId, syncLogo=false){
+      const file = event.target.files[0];
+      if(!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const img = document.getElementById(imageId);
+        if(!img) return;
+
+        img.src = e.target.result;
+        img.style.display = "block";
+
+        if(syncLogo){
+          ["logoImg2","logoImg3","logoImg4","logoImg5"].forEach(id=>{
+            const other = document.getElementById(id);
+            if(other){
+              other.src = e.target.result;
+              other.style.display = "block";
+            }
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function exportPDF(){
+      const { jsPDF } = window.jspdf;
+      const pages = document.querySelectorAll(".page");
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      for(let i=0; i<pages.length; i++){
+        const canvas = await html2canvas(pages[i], {
+          scale:3,
+          useCORS:true,
+          backgroundColor:"#ffffff"
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 1.0);
+        if(i>0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+      }
+
+      pdf.save("Ficha_DETECIN_Filtro_Banda_Vacio.pdf");
+    }
+  </script>
+</body>
+</html>
