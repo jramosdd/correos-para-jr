@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Para mi Libz</title>
+<style>
+    body {
+        margin: 0;
+        background: #000;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+    }
+
+    canvas {
+        display: block;
+    }
+
+    #mensaje {
+        position: fixed;
+        bottom: 45px;
+        width: 100%;
+        text-align: center;
+        color: #ff4fc3;
+        font-size: 24px;
+        text-shadow: 0 0 15px #ff4fc3;
+        opacity: 0;
+        transition: opacity 2s;
+    }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+<div id="mensaje">Te amo, Libz Nery💗</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let W = canvas.width;
+let H = canvas.height;
+let t = 0;
+
+function glowText() {
+    ctx.save();
+    ctx.font = "70px cursive";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ff5bd8";
+    ctx.shadowColor = "#ff3cc7";
+    ctx.shadowBlur = 30;
+    ctx.fillText("Libz", W / 2, H * 0.75);
+    ctx.restore();
+}
+
+function drawRose(progress) {
+    ctx.save();
+    ctx.translate(W / 2, H / 2 - 60);
+
+    for (let layer = 0; layer < 9; layer++) {
+        ctx.beginPath();
+
+        let points = 900;
+        let maxTheta = Math.PI * 12 * progress;
+
+        for (let i = 0; i < points * progress; i++) {
+            let a = (i / points) * maxTheta;
+
+            let r = 8 * a + 35 * Math.sin(5 * a + layer);
+            let x = r * Math.cos(a + layer * 0.28);
+            let y = r * Math.sin(a + layer * 0.28) * 0.65;
+
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+
+        ctx.strokeStyle = `hsla(${320 + layer * 5}, 100%, ${55 + layer * 3}%, 0.55)`;
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = "#ff2fbf";
+        ctx.shadowBlur = 18;
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+function drawStem(progress) {
+    ctx.save();
+    ctx.translate(W / 2, H / 2 + 120);
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-20, 80, 30, 150, -15, 260 * progress);
+    ctx.strokeStyle = "#54ff00";
+    ctx.lineWidth = 5;
+    ctx.shadowColor = "#54ff00";
+    ctx.shadowBlur = 20;
+    ctx.stroke();
+
+    function leaf(x, y, flip) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.quadraticCurveTo(x * flip, y - 40, x * flip, y - 85);
+        ctx.quadraticCurveTo(x * flip - 60 * flip, y - 45, 0, y);
+        ctx.strokeStyle = "#77ff28";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    if (progress > 0.45) {
+        leaf(-120, 120, -1);
+        leaf(120, 170, 1);
+    }
+
+    ctx.restore();
+}
+
+function particles() {
+    for (let i = 0; i < 40; i++) {
+        let x = W / 2 + Math.cos(t * 0.03 + i) * Math.random() * 260;
+        let y = H / 2 + Math.sin(t * 0.04 + i) * Math.random() * 260;
+
+        ctx.beginPath();
+        ctx.arc(x, y, Math.random() * 2, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff4fc3";
+        ctx.shadowColor = "#ff4fc3";
+        ctx.shadowBlur = 15;
+        ctx.fill();
+    }
+}
+
+function animate() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+    ctx.fillRect(0, 0, W, H);
+
+    let progress = Math.min(t / 420, 1);
+
+    if (progress < 0.35) {
+        glowText();
+    }
+
+    particles();
+
+    if (progress > 0.15) {
+        drawRose((progress - 0.15) / 0.85);
+    }
+
+    if (progress > 0.55) {
+        drawStem((progress - 0.55) / 0.45);
+    }
+
+    if (progress >= 1) {
+        glowText();
+        document.getElementById("mensaje").style.opacity = 1;
+    }
+
+    t++;
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
